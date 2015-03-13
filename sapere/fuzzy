@@ -1,0 +1,50 @@
+package fuzzy;
+
+import fuzzy.util.FuzzyMatch;
+
+public class Test {
+
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		System.out.println("RESULT: "+FuzzyMatch.getInstance().match("Basket","Sport"));
+	}
+}
+
+package fuzzy.util;
+
+import fuzzydl.ConfigReader;
+import fuzzydl.KnowledgeBase;
+import fuzzydl.MinInstanceQuery;
+import fuzzydl.Query;
+import fuzzydl.milp.Solution;
+import fuzzydl.parser.Parser;
+
+public class FuzzyMatch {
+
+	
+	private static KnowledgeBase kb;
+	private static FuzzyMatch instance;
+	
+	public static FuzzyMatch getInstance(){
+		if(instance==null)
+			instance = new FuzzyMatch();
+		return instance;
+	}
+	private FuzzyMatch(){
+		// Load options for the reasoner, using file "CONFIG"
+		ConfigReader.loadParameters("/Users/Santa/Workspace Eclipse/FuzzyDL/FuzzyDL/CONFIG", new String[0]);
+		kb = Parser.getKB("/Users/Santa/Workspace Eclipse/FuzzyDL/FuzzyDL/ontology1.txt");
+	}
+	
+	public double match(String i, String c){
+		
+		Query q = new MinInstanceQuery(kb.getConcept(c),kb.getIndividual(i) );
+
+		Solution result = q.solve(kb);
+		
+		return result.getSolution();
+
+	}
+}

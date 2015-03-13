@@ -1,0 +1,28 @@
+		
+		// {t}:test[content={c':c' < 10}] -markov(0.8)-> {t}:[content=c'+1] + {t->localhost:10000} + {-t}
+		Reaction ctxsns = new Reaction(new MarkovianRate(0.8), new MultiplicativeScoreFunction());
+			Reagent re11 = new Reagent("t", "test", ctxsns, new Property[]{
+					new Property("content", new MatchPropertyValue("c'",new SinglePropertyValue("10"),"<"))});
+			
+			Product pr10 = new Product(ProductType.Update, "t", "", "", "", ctxsns);
+				PropertyModifier pm10 = new PropertyModifier(PropertyModifierType.UpdateProperty, "content", null, pr10){
+					public PropertyValue getModification(){
+						Lsa lsa = parentReaction.getReagent(this.parentProduct.getIdentifier()).getCandidateLsa();
+						int num = Integer.parseInt(lsa.getContent().getProperty(this.getModifiedPropertyName()).getValue().toString());
+						return new SinglePropertyValue(num+1+"");
+					}
+					
+					public String toString(){
+						return this.getModifiedPropertyName()+"=c'+1";
+					}
+				};
+			pr10.addPropertyMod(pm10);
+			Product pr11 = new Product(ProductType.Diffuse, "t", "", "", "localhost:10000", ctxsns);
+			Product pr12 = new Product(ProductType.Remove, "t", "", "", "", ctxsns);
+			
+		ctxsns.addReagent(re11);
+		ctxsns.addProduct(pr10);
+		ctxsns.addProduct(pr11);
+		ctxsns.addProduct(pr12);
+		
+		manager.addReaction(ctxsns);

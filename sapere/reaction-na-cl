@@ -1,0 +1,102 @@
+		/*Diffusion law*/
+		Reaction r = new Reaction(new ASAPRate(),new MeanScoreFunction());
+		
+		Reagent re1 = new Reagent("d", "test", r);
+			re1.addProperty(new Property("content", new SinglePropertyValue("value")));
+		r.addReagent(re1);
+		
+		r.addProduct(new Product(ProductType.Diffuse,"d","","","127.0.0.1:10002",r));
+		r.addProduct(new Product(ProductType.Remove,"d","","","",r));
+		
+		manager.addReaction(r);
+
+
+		/*----------------------------------
+		 ecolaw(io,[na(conc(NA)),cl(conc(CL)),nap(conc(NAP)),clm(conc(CLM))],
+			rate(markovian,0.1*NA*CL),\n"+
+			[na(conc(NA2)),cl(conc(CL2)),nap(conc(NAP2)),clm(conc(CLM2))],
+			(NA2 is NA-1,CL2 is CL-1, NAP2 is NAP+1, CLM2 is CLM+1, NA2>=0, CL2>=0, NAP2 >=0, CLM2 >=0)).
+		------------------------------------ */
+		Reaction r2 = new Reaction(new MarkovianRate(0.8),new MeanScoreFunction());
+			Reagent re21 = new Reagent("na","na",r2);
+			Property p21 = new Property("conc",re21);
+			PropertyValue p21v = new VarPropertyValue("NA",p21);
+			p21.setValue(p21v);
+			re21.addProperty(p21);
+			
+			Reagent re21b = new Reagent("na2","na",r2);
+			Property p21b = new Property("conc",re21);
+			PropertyValue p21bv = new MatchPropertyValue("conc", new SinglePropertyValue("0"), ">");
+			p21b.setValue(p21bv);
+			re21b.addProperty(p21b);
+			
+			
+			Reagent re22 = new Reagent("cl","cl",r2);
+			Property p22 = new Property("conc",re22);
+			PropertyValue p22v = new VarPropertyValue("CL",p22);
+			p22.setValue(p22v);
+			re22.addProperty(p22);
+			
+			Reagent re23 = new Reagent("nap","nap",r2);
+			Property p23 = new Property("conc",re23);
+			PropertyValue p23v = new VarPropertyValue("NAP",p23);
+			p23.setValue(p23v);
+			re23.addProperty(p23);
+			
+			Reagent re24 = new Reagent("clm","clm",r2);
+			Property p24 = new Property("conc",re24);
+			PropertyValue p24v = new VarPropertyValue("CLM",p24);
+			p24.setValue(p24v);
+			re24.addProperty(p24);
+
+		r2.addReagent(re21); r2.addReagent(re21b);
+		r2.addReagent(re22);
+		r2.addReagent(re23);
+		r2.addReagent(re24);
+		
+		Product pr21 = new Product(ProductType.Update,"na","","","", r2);
+		PropertyModifier pm21 = new PropertyModifier(PropertyModifierType.UpdateProperty, "conc",null, pr21){
+			public PropertyValue getModification(){
+				VarPropertyValue v1 = new VarPropertyValue("NA", parentReaction);
+				int na = Integer.parseInt(((SinglePropertyValue)v1.getValue()).getValue())-1;
+				return new SinglePropertyValue(""+na);
+			}
+		};
+		pr21.addPropertyMod(pm21);
+		
+		Product pr22 = new Product(ProductType.Update,"cl","","","",r2);
+		PropertyModifier pm22 = new PropertyModifier(PropertyModifierType.UpdateProperty, "conc",null, pr22){
+			public PropertyValue getModification(){
+				VarPropertyValue v1 = new VarPropertyValue("CL", parentReaction);
+				int cl = Integer.parseInt(((SinglePropertyValue)v1.getValue()).getValue())-1;
+				return new SinglePropertyValue(""+cl);
+			}
+		};
+		pr22.addPropertyMod(pm22);
+		
+		Product pr23 = new Product(ProductType.Update,"nap","","","",r2);
+		PropertyModifier pm23 = new PropertyModifier(PropertyModifierType.UpdateProperty, "conc",null, pr23){
+			public PropertyValue getModification(){
+				VarPropertyValue v1 = new VarPropertyValue("NAP", parentReaction);
+				int nap = Integer.parseInt(((SinglePropertyValue)v1.getValue()).getValue())+1;
+				return new SinglePropertyValue(""+nap);
+			}
+		};
+		pr23.addPropertyMod(pm23);
+		
+		Product pr24 = new Product(ProductType.Update,"clm","","","",r2);
+		PropertyModifier pm24 = new PropertyModifier(PropertyModifierType.UpdateProperty, "conc",null, pr24){
+			public PropertyValue getModification(){
+				VarPropertyValue v1 = new VarPropertyValue("CLM", parentReaction);
+				int clm = Integer.parseInt(((SinglePropertyValue)v1.getValue()).getValue())+1;
+				return new SinglePropertyValue(""+clm);
+			}
+		};
+		pr24.addPropertyMod(pm24);
+		
+		r2.addProduct(pr21);
+		r2.addProduct(pr22);
+		r2.addProduct(pr23);
+		r2.addProduct(pr24);
+		
+		manager.addReaction(r2); 

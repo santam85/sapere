@@ -1,0 +1,122 @@
+		//	{d}:display[contextualizing = yes] + {s}:sensor -->[CTX-SNS] {d}:[context += {s}] + {s}
+		Reaction ctxsns = new Reaction(new ASAPRate(), new MultiplicativeScoreFunction());
+			Reagent re11 = new Reagent("d", "display", ctxsns, new Property[]{
+					new Property("contextualizing", new SinglePropertyValue("yes")),
+					new Property("context",new NotPropertyValue(new LsaPropertyValue("s")))});
+			Reagent re12 = new Reagent("s", "sensor", ctxsns, new Property[]{});
+			
+			Product pr11 = new Product(ProductType.Update, "d", "", "", "", ctxsns);
+				PropertyModifier pm11 = new PropertyModifier(PropertyModifierType.AddValue, "context", new LsaPropertyValue("s"), pr11);
+				pr11.addPropertyMod(pm11);
+			Product pr12 = new Product(ProductType.LeaveUntouched, "s", "", "", "", ctxsns);
+				
+		ctxsns.addReagent(re11);
+		ctxsns.addReagent(re12);
+		ctxsns.addProduct(pr11);
+		ctxsns.addProduct(pr12);
+		
+		manager.addReaction(ctxsns);
+		
+		//{d}:display[contextualizing = yes] + {u}:user -->[CTX-USR] {d}:[context += {u}] + {u}
+		Reaction ctxusr = new Reaction(new ASAPRate(), new MultiplicativeScoreFunction());
+		Reagent re21 = new Reagent("d", "display", ctxusr, new Property[]{
+				new Property("contextualizing", new SinglePropertyValue("yes")),
+				new Property("context",new NotPropertyValue(new LsaPropertyValue("u")))});
+		Reagent re22 = new Reagent("u", "user", ctxusr, new Property[]{});
+		
+		Product pr21 = new Product(ProductType.Update, "d", "", "", "", ctxusr);
+			PropertyModifier pm21 = new PropertyModifier(PropertyModifierType.AddValue, "context", new LsaPropertyValue("u"), pr21);
+			pr21.addPropertyMod(pm21);
+		Product pr22 = new Product(ProductType.LeaveUntouched, "u", "", "", "", ctxusr);
+			
+		ctxusr.addReagent(re21);
+		ctxusr.addReagent(re22);
+		ctxusr.addProduct(pr21);
+		ctxusr.addProduct(pr22);
+		
+		manager.addReaction(ctxusr);
+		
+		//{d}:display[contextualizing = yes, screenprops = {p}] + {s}:service[screenprops = {pÕ: pÕ matches p}] -->[CTX-SER] {d}:[context += {s}] + {s}
+		Reaction ctxser = new Reaction(new ASAPRate(), new MultiplicativeScoreFunction());
+		Reagent re31 = new Reagent("d", "display", ctxser, new Property[]{
+				new Property("contextualizing", new SinglePropertyValue("yes")),
+				new Property("context",new NotPropertyValue(new LsaPropertyValue("s"))),
+				new Property("screenprops",new VarPropertyValue("p",ctxser))});
+		Reagent re32 = new Reagent("s", "service", ctxser, new Property[]{
+				new Property("screenprops",new MatchPropertyValue("p'", new VarPropertyValue("p",ctxser), "matches"))});
+		
+		Product pr31 = new Product(ProductType.Update, "d", "", "", "", ctxser);
+			PropertyModifier pm31 = new PropertyModifier(PropertyModifierType.AddValue, "context", new LsaPropertyValue("s"), pr31);
+			pr31.addPropertyMod(pm31);
+		Product pr32 = new Product(ProductType.LeaveUntouched, "s", "", "", "", ctxser);
+			
+		ctxser.addReagent(re31);
+		ctxser.addReagent(re32);
+		ctxser.addProduct(pr31);
+		ctxser.addProduct(pr32);
+		
+		manager.addReaction(ctxser);
+		
+		//{d}:display[recommend = ask, context = {ctx}] -->[SEL-ASK] {d}:display[recommend = asked] + {r}:recommendation[device={d},context={ctx}, question=service]
+		Reaction selask = new Reaction(new ASAPRate(), new MultiplicativeScoreFunction());
+		Reagent re41 = new Reagent("d", "display", selask, new Property[]{
+				new Property("recommend", new SinglePropertyValue("ask")),
+				new Property("context",new VarPropertyValue("ctx",selask))});
+		
+		Product pr41 = new Product(ProductType.Update, "d", "", "", "", selask);
+			PropertyModifier pm41 = new PropertyModifier(PropertyModifierType.UpdateProperty, "recommend", new SinglePropertyValue("asked"), pr41);
+			pr41.addPropertyMod(pm41);
+		Product pr42 = new Product(ProductType.New, "r", "recommendation", "", "", selask);
+			pr42.addProperty(new Property("device",new LsaPropertyValue("d")));
+			pr42.addProperty(new Property("context",new VarPropertyValue("ctx",selask)));
+			pr42.addProperty(new Property("question",new SinglePropertyValue("service")));
+			
+		selask.addReagent(re41);
+		selask.addProduct(pr41);
+		selask.addProduct(pr42);
+		
+		manager.addReaction(selask);
+		
+		//{r}:recommendation[context={ctx}, question=service] + {s}:service[content={c: c matches ctx}] -->[SEL-MATCH] {s} + {r}:[answer={s}]
+		Reaction selmatch = new Reaction(new ASAPRate(), new MultiplicativeScoreFunction());
+		Reagent re51 = new Reagent("r", "recommendation", selmatch, new Property[]{
+				new Property("context",new VarPropertyValue("ctx",selmatch)),
+				new Property("question",new SinglePropertyValue("service")),
+				new Property("answer",new NotPropertyValue(new LsaPropertyValue("s")))});
+		Reagent re52 = new Reagent("s", "service", selmatch, new Property[]{
+				new Property("content", new MatchPropertyValue("c",new VarPropertyValue("ctx",selmatch),"matches"))});
+
+		Product pr51 = new Product(ProductType.LeaveUntouched, "s", "", "", "", selmatch);
+		Product pr52 = new Product(ProductType.Update, "r", "", "", "", selmatch);
+			PropertyModifier pm52 = new PropertyModifier(PropertyModifierType.UpdateProperty, "answer", new LsaPropertyValue("s"), pr51);
+			pr52.addPropertyMod(pm52);
+			
+		selmatch.addReagent(re51);
+		selmatch.addReagent(re52);
+		selmatch.addProduct(pr51);
+		selmatch.addProduct(pr52);
+		
+		manager.addReaction(selmatch);
+		
+		//{d}:display[recommend = asked, context = {ctx}] + {r}:recommenation[device={d}, answer={s}] -->[SEL-REP] {d}:[recommend = received, showFrom = {s}]
+		Reaction selrep = new Reaction(new ASAPRate(), new MultiplicativeScoreFunction());
+		Reagent re61 = new Reagent("d", "display", selrep, new Property[]{
+				new Property("recommend", new SinglePropertyValue("asked")),
+				new Property("context",new VarPropertyValue("ctx",selrep))});
+		Reagent re62 = new Reagent("r", "recommendation", selrep, new Property[]{
+				new Property("device", new VarPropertyValue("d",selrep)),
+				new Property("answer",new VarPropertyValue("s",selrep))});
+		
+		Product pr61 = new Product(ProductType.Remove, "r", "", "", "", selrep);
+		Product pr62 = new Product(ProductType.Update, "d", "", "", "", selrep);
+			PropertyModifier pm61 = new PropertyModifier(PropertyModifierType.UpdateProperty, "recommend", new SinglePropertyValue("received"), pr61);
+			pr62.addPropertyMod(pm61);
+			PropertyModifier pm62 = new PropertyModifier(PropertyModifierType.UpdateProperty, "showfrom", new VarPropertyValue("s",selrep), pr61);
+			pr62.addPropertyMod(pm62);
+			
+		selrep.addReagent(re61);
+		selrep.addReagent(re62);
+		selrep.addProduct(pr61);
+		selrep.addProduct(pr62);
+		
+		manager.addReaction(selrep);

@@ -1,0 +1,17 @@
+String theory ="" +
+":-load_library('alice.tuprolog.lib.DCGLibrary').\n"+
+
+"reagent-->name(N),{reagent<-setName(N)},['('],properties(reagent),[')'].\n"+
+"name(X)-->[X],{atom(X)}.\n"+
+"properties(_)-->[].\n"+
+"properties(O)-->property(P),propertyrest(O),{O<-addProperty(P)}.\n"+
+"propertyrest(O)-->[].\n"+
+"propertyrest(O)-->[','],property(P),propertyrest(O),{O<-addProperty(P)}.\n"+
+"property(O)-->name(X),['('],value(V),[')'],{java_object_bt('sapere.controller.reactionManager.newrm.Property',[X,V,_],O)}.\n"+
+"value(O)-->[X],{atom(X),java_object_bt('sapere.controller.reactionManager.newrm.SinglePropertyValue',[X],O)}.\n"+
+"value(O)-->['['],{java_object('sapere.controller.reactionManager.newrm.SetPropertyValue',[],O)},valueset(O),[']'].\n"+
+"valueset(O)-->[X],valuesetrest(O),{atom(X),O<-addValue(X)}.\n"+
+"valuesetrest(_)-->[].\n" +
+"valuesetrest(O)-->[','],[X],valuesetrest(O),{atom(X),O<-addValue(X)}.\n"+
+"value(O)-->valuereagent(O).\n" +
+"valuereagent(O)-->name(N),{java_object_bt('sapere.controller.reactionManager.newrm.Reagent',[N,null,null],O)},['('],properties(O),[')'].\n";

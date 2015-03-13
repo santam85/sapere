@@ -1,0 +1,57 @@
+"%first(+Type,+Rate,-Time): computes the duration T of a new event\n"+
+"first(markovian,R,T):-rand_float(X),T is log(1.0/X)/R.\n"+
+"first(fixed,R,T):-T is 1.0/R.\n"+
+"first(now,_,0).\n"+
+"\n"+
+"%ecolaw(Name,ListOfReagents,rate(Type,Expression),ListOfProducts,Conditions)\n"+
+"%4 examples of ecolaw below\n"+
+"ecolaw(io,[na(NA),cl(CL),nap(NAP),clm(CLM)],\n"+
+"	rate(markovian,0.1*NA*CL),\n"+
+"	[na(NA2),cl(CL2),nap(NAP2),clm(CLM2)],\n"+
+"	(NA2 is NA-1,CL2 is CL-1, NAP2 is NAP+1, CLM2 is CLM+1, NA2>=0, CL2>=0, NAP2 >=0, CLM2 >=0)).\n"+
+"ecolaw(deio,[na(NA2),cl(CL2),nap(NAP2),clm(CLM2)],\n"+
+"	rate(markovian,0.9*NA2*CL2),\n"+
+"	[na(NA),cl(CL),nap(NAP),clm(CLM)],\n"+
+"	(NA is NA2+1,CL is CL2+1, NAP is NAP2-1, CLM is CLM2-1, NA2>=0, CL2>=0, NAP2 >=0, CLM2 >=0)).\n"+
+"ecolaw(fix, [p(X,Y),q(Y)],rate(fixed,10),[r(X,Y)],true).\n"+
+"ecolaw(now, [r(X)],rate(now,1),[q(X)],true).\n"+
+"\n"+
+"%example lsas\n"+/*
+"lsa(na(20)).\n"+
+"lsa(cl(10)).\n"+
+"lsa(nap(11)).\n"+
+"lsa(clm(7)).\n"+
+"lsa(p(gino,bianco)).\n"+
+"lsa(p(marco,verde)).\n"+
+"lsa(q(bianco)).\n"+
+"lsa(r(verde)).\n"+
+"\n"+*/
+"%action(-A): returns an action that can be executed, which is basically an instantiated eco-law\n"+
+"action(act(Name,LPre,rate(Type,Rate),O)):-\n"+
+"    ecolaw(Name,LPre,rate(Type,RateExp),O,C),\n"+
+"    pick(LPre),\n"+
+"    call(C),\n"+
+"    Rate is RateExp.\n"+
+"pick([]).\n"+
+"pick([H|T]):-call(lsa(H)),pick(T).\n"+
+"\n"+
+"% try ?-action(X).\n"+
+"\n"+
+"\n"+
+"% event(act(Name,LSAtoDrop,rate(Type,Rate),LSAtoAdd),TimeItWasScheduled,TimeToWakeup).\n"+
+"\n"+
+"% newqueue(+CurrentTime,-SortedListOfEvents).\n"+
+"newqueue(T0,LO):-findall(event(act(Name,LPre,rate(Type,Exp2),O),T0,T),\n"+
+"		 (action(act(Name,LPre,rate(Type,Rate),O)),first(Type,Rate,X),T is T0+X),L),\n"+
+"	         quicksort(L,compareaction,LO).\n"+
+"\n"+
+"compareaction(event(_,_,T),event(_,_,T2)):-T<T2.\n"+
+"\n"+
+"%dependent(CauseAction,DependentAction).\n"+
+"dependent(act(_,P,_,E),act(_,P2,_,_)):-chmjoin(P,E,L),member(Y,L),member(Y,P2),!.\n"+
+"chmjoin([],P,P):-!.\n"+
+"chmjoin(P,[],P):-!.\n"+
+"chmjoin([H|T],P,L):-member2(P,H,P2),!,chmjoin(T,P2,L).\n"+
+"chmjoin([H|T],P,[H|L]):-chmjoin(T,P,L).\n"+
+"member2([H|T],H,T).\n"+
+"member2([H|T],H2,[H|T2]):-member(T,H2,T2).";

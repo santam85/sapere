@@ -1,0 +1,97 @@
+1 reaction manager senses new event, for each reaction sends the list of lsas to an abstract matcher, calling score() method.
+	it passes the list of lsas and the transaction for which compute the scores of all the reagents combinations
+	it specifies a threshold, meaning that all lsa with a match score under the specified value will be filtered
+2 the matcher matches lsas with the reaction, following a particular policy, eventually returning a list of scores for a reaction along with the associated transactions
+		for each reagents filters all lsas finding the ones that fit best, using the threshold value specified by the reaction manager. [filter()]
+			filtering must not bind vars, vars are treated in this instance as wildcard property values.
+			all of the above is true also for the "matches" construct, if required.
+		having the individual list of candidates for each reagent, computes all the possible combinations of reagents
+		it starts examining every single combinations, with the goal of obtaining a score and an instantiated reaction (transaction) which is a mere list of operations
+		proceeding in an ordered fashion, the matcher starts matching each candidate of the combination to the reagent, adding the CandidateLsaScore to the reagent
+			this triggers variable binding and reagent id mapping, and the logic for those operations is implemented inside the reaction and the reagent.
+		after matching and setting the candidates for each reagent, the matcher gets the instantiated reaction (transaction) from the reaction [getExecutableTransaction()]
+	the returned transaction is then coupled with the reaction and the total score, and is added to the list
+	the added object [TotalScore] contains:
+	-a double value representing how much the lsas are similar to the reagents (only one value)
+	-a pointer to the corresponding reaction (to be able to gather info such as rate and type of the reaction)
+	-a transaction field storing the instantiated reaction
+3 the reaction manager decides which transaction to filter, and computes the execution time from the reaction rate and the transaction score (function) of the reaction.
+
+
+Demo
+Manuali + Presentazione
+
+
+	
+-LSA ASTRATTI Gerarchia
+	Lsa = id + Content
+-SPAZIO NON CONCORRENTE (Lo usa solo il RM)
+-Id generati dallo space (fresh id)
+-Gestione variabili dei prodotti (fresh ids) e selezione di tutti i reagenti
+-Fuzzy matcher (sintattico)
+-Pattern Strategy
+-Maggiore=
+-Se c'è matches, vale il suo valore
+-Reazioni con solo prodotti (caso del new product)
+-NotProperty (+=)
+
+Introduzione
+	Obbiettivi
+Progetto sapere
+	Background
+	Cos'è un LSA
+	Scenari e obbiettivi
+Coordinazione chimico-semantica
+	Background
+	Lavoro Virruso
+	Linguaggio Viroli
+Analisi e adattamento Infrastruttura
+	Struttura di partenza, organizzazione di framework Tosi
+	Progettazione iniziale, influenza cose già fatte
+		Modifiche da apportare
+			Lsa
+			ReactionManager
+			Algoritmi
+			Space
+		Componenti da aggiungere
+			+progettazione
+			+modello reazione
+			+da lsa + reazione a prodotti concreti
+Progettazione nuove entità
+	Modello reazioni
+		Semantica
+		Rappresentazione astratta Lsa
+			+Properties
+			+Property Values
+		Rappresentazione astratta Reazioni
+			Reagents
+				+Property Values aggiuntivi
+			Products
+				+PropertyModifiers
+			Rate
+			ScoreFunction
+		Transaction (Instantiated Reaction)
+	Nuovi componenti
+		ReactionManager
+			+Eventi
+			+Dettagli
+		Matcher
+			+Filtering
+			+Binding
+			+Score
+	Meccanismi
+		Produzione delle operazioni 
+		Instantiated Reaction
+	Risultato, schema alto livello
+Conclusioni
+	+Struttura astratta
+	Obbiettivi raggiunti
+	Cosa manca
+		+Matcher semantico
+		+Interprete linguaggio
+		+Rapp esterne
+	
+		
+	
+
+

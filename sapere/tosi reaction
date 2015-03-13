@@ -1,0 +1,55 @@
+diffinput, diffoutput, service
+
+ComplexReaction service = new ComplexReaction(0.8);
+LogicContentFilter service_f = new LogicContentFilter("service(Q)");
+service.getReagents().add(service_f);
+service.getTransaction().getOperations().add(new SpaceOperation(SpaceOperation.INJECT, null, new Lsa(new LogicLsaContent("go(service(Q),'127.0.0.1')")), null));
+manager.addReaction(service);
+
+ComplexReaction request = new ComplexReaction(0.8);
+LogicContentFilter request_f = new LogicContentFilter("request(Q)");
+request.getReagents().add(request_f);
+request.getTransaction().getOperations().add(new SpaceOperation(SpaceOperation.INJECT, null, new Lsa(new LogicLsaContent("go(request(Q),'127.0.0.1')")), null));
+manager.addReaction(request);
+
+ComplexReaction bind2 = new ComplexReaction(0.8);
+LogicContentFilter bind2_f1 = new LogicContentFilter("response(Q)");
+LogicContentFilter bind2_f2 = new LogicContentFilter("stat");
+bind2.getReagents().add(bind2_f1);
+bind2.getReagents().add(bind2_f2);
+bind2.getTransaction().getOperations().add(new SpaceOperation(SpaceOperation.UPDATE, "1", null, new LogicLsaContent("stat(Q)")));
+bind2.getTransaction().getOperations().add(new SpaceOperation(SpaceOperation.REMOVE, "0", null, null));
+manager.addReaction(bind2);
+
+ComplexReaction bind = new ComplexReaction(0.8);
+LogicContentFilter bind_f1 = new LogicContentFilter("service(Q)");
+LogicContentFilter bind_f2 = new LogicContentFilter("request(Q)");
+bind.getReagents().add(bind_f1);
+bind.getReagents().add(bind_f2);
+bind.getTransaction().getOperations().add(new SpaceOperation(SpaceOperation.UPDATE, "0", null, new LogicLsaContent("served(Q)")));
+manager.addReaction(bind);
+
+ComplexReaction answer = new ComplexReaction(0.8);
+LogicContentFilter answer_f1 = new LogicContentFilter("served(Q,A)");
+LogicContentFilter answer_f2 = new LogicContentFilter("request(Q)");
+answer.getReagents().add(answer_f1);
+answer.getReagents().add(answer_f2);
+answer.getTransaction().getOperations().add(new SpaceOperation(SpaceOperation.UPDATE, "1", null, new LogicLsaContent("request(Q,A)")));
+answer.getTransaction().getOperations().add(new SpaceOperation(SpaceOperation.INJECT, null, new Lsa(new LogicLsaContent("go(response(A),'127.0.0.1')")), null));
+answer.getTransaction().getOperations().add(new SpaceOperation(SpaceOperation.REMOVE, "1", null, null));
+manager.addReaction(answer);
+
+ComplexReaction diffuse = new ComplexReaction(0.8);
+LogicContentFilter go = new LogicContentFilter("go(_,_)");
+diffuse.getReagents().add(go);
+diffuse.getTransaction().getOperations().add(new SpaceOperation(SpaceOperation.DIFFUSE, "0", null, null));
+diffuse.getTransaction().getOperations().add(new SpaceOperation(SpaceOperation.REMOVE, "0", null, null));
+manager.addReaction(diffuse);
+
+ComplexReaction served = new ComplexReaction(0.8);
+LogicContentFilter served_f1 = new LogicContentFilter("served(Q,A)");
+LogicContentFilter served_f2 = new LogicContentFilter("request(Q,A)");
+served.getReagents().add(served_f1);
+served.getReagents().add(served_f2);
+served.getTransaction().getOperations().add(new SpaceOperation(SpaceOperation.INJECT, null, new Lsa(new LogicLsaContent("go(served(Q,A),'127.0.0.1')")), null));
+manager.addReaction(served);
